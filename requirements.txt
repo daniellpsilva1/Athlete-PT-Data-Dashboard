@@ -5,3 +5,5 @@ plotly==5.18.0
 matplotlib==3.8.2
 python-dotenv==1.0.0
 numpy==1.26.2
+pymongo[srv]
+python-dotenv
