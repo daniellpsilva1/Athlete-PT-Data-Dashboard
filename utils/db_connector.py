@@ -7,8 +7,12 @@ load_dotenv()
 
 def get_db():
     client = MongoClient(
-        "MONGO_URI",
+        os.getenv("MONGO_URI"),
         tls=True,
-        tlsAllowInvalidCertificates=True
+        tlsAllowInvalidCertificates=True,
+        retryWrites=True,
+        w="majority",
+        connectTimeoutMS=30000,
+        socketTimeoutMS=30000
     )
     return client.your_database_name
