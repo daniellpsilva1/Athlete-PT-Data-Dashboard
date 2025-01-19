@@ -4,44 +4,41 @@ import plotly.graph_objects as go
 
 def display_player_profile(athlete_name):
     db = get_db()
-    athlete = db.athletes.find_one({"Nome da Atleta": athlete_name})
+    athlete = db.athletes.find_one({"nome_da_atleta": athlete_name})
     
     if not athlete:
         st.error("Athlete data not found!")
         return
     
-    # Handle Membro Dom. object structure
-    membro_dom = athlete.get('Membro Dom.', {})
-    # Get the first key that exists in the object
-    dominant_side = list(membro_dom.keys())[1] if membro_dom else 'N/A'
+    # Handle dominant side (membro_dom is now a direct string value)
+    dominant_side = athlete.get('membro_dom', 'N/A')
 
     with st.container(border=True):
-      col1, col2, col3 = st.columns(3)
-      with col1:
-          st.write(f"**Name:** {athlete.get('Nome da Atleta', 'N/A')}")
-          st.write(f"**Position:** {athlete.get('Posição', 'N/A')}")
-          st.write(f"**Dominant Side:** {dominant_side}")
-      with col2:
-          st.write(f"**Height:** {athlete.get('Altura', 'N/A')} cm")
-          st.write(f"**Weight:** {athlete.get('Peso', 'N/A')} kg")
-          st.write(f"**Age:** {athlete.get('Idade', 'N/A')}")
-      with col3:
-          st.write(f"**Maturity Level:** {athlete.get('Nivel Maturacional', 'N/A')}")
-
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.write(f"**Name:** {athlete.get('nome_da_atleta', 'N/A')}")
+            st.write(f"**Position:** {athlete.get('posição', 'N/A')}")
+            st.write(f"**Dominant Side:** {dominant_side}")
+        with col2:
+            st.write(f"**Height:** {athlete.get('altura', 'N/A')} cm")
+            st.write(f"**Weight:** {athlete.get('peso', 'N/A')} kg")
+            st.write(f"**Age:** {athlete.get('idade', 'N/A')}")
+        with col3:
+            st.write(f"**Maturity Level:** {athlete.get('nivel_maturacional', 'N/A')}")
 
 def calculate_fms_averages():
     db = get_db()
     # Get all athletes' FMS scores
     athletes = db.athletes.find({}, {
-        'Deep Squat': 1,
-        'Hurdle Step': 1,
-        'Inline Lunge': 1,
-        'TS Push Up': 1,
-        'Rotary Stability': 1,
-        'DA SM': 1,
-        'NDA SM': 1,
-        'DA LR': 1,
-        'NDA LR': 1,
+        'deep_squat': 1,
+        'hurdle_step': 1,
+        'inline_lunge': 1,
+        'ts_push_up': 1,
+        'rotary_stability': 1,
+        'da_sm': 1,
+        'nda_sm': 1,
+        'da_lr': 1,
+        'nda_lr': 1,
         '_id': 0
     })
     
@@ -52,15 +49,15 @@ def calculate_fms_averages():
     # Calculate totals
     for athlete in athletes:
         scores = [
-            athlete.get('Deep Squat', 0),
-            athlete.get('Hurdle Step', 0),
-            athlete.get('Inline Lunge', 0),
-            athlete.get('TS Push Up', 0),
-            athlete.get('Rotary Stability', 0),
-            athlete.get('DA SM', 0),
-            athlete.get('NDA SM', 0),
-            athlete.get('DA LR', 0),
-            athlete.get('NDA LR', 0)
+            athlete.get('deep_squat', 0) or 0,
+            athlete.get('hurdle_step', 0) or 0,
+            athlete.get('inline_lunge', 0) or 0,
+            athlete.get('ts_push_up', 0) or 0,
+            athlete.get('rotary_stability', 0) or 0,
+            athlete.get('da_sm', 0) or 0,
+            athlete.get('nda_sm', 0) or 0,
+            athlete.get('da_lr', 0) or 0,
+            athlete.get('nda_lr', 0) or 0
         ]
         total_scores = [sum(x) for x in zip(total_scores, scores)]
         count += 1
@@ -70,19 +67,20 @@ def calculate_fms_averages():
         return [score / count for score in total_scores]
     return [0] * 9  # Return zeros if no data
 
+
 def display_test_results(athlete_name):
     db = get_db()
-    athlete = db.athletes.find_one({"Nome da Atleta": athlete_name})
+    athlete = db.athletes.find_one({"nome_da_atleta": athlete_name})
     
     if not athlete:
         st.error("Athlete data not found!")
         return
     
-        # List of FMS test fields
+    # List of FMS test fields
     fms_fields = [
-        'Deep Squat', 'Hurdle Step', 'Inline Lunge', 
-        'TS Push Up', 'Rotary Stability',
-        'DA SM', 'NDA SM', 'DA LR', 'NDA LR'
+        'deep_squat', 'hurdle_step', 'inline_lunge', 
+        'ts_push_up', 'rotary_stability',
+        'da_sm', 'nda_sm', 'da_lr', 'nda_lr'
     ]
     
     # Check if any FMS tests exist for this athlete
@@ -90,23 +88,25 @@ def display_test_results(athlete_name):
         st.info("No FMS test results available for this athlete.")
         return
     
-    # FMS test names
-    fms_tests = ['Deep Squat', 'Hurdle Step', 'Inline Lunge', 
-                'TS Push Up', 'Rotary Stability',
-                'DA Shoulder Mobility', 'NDA Shoulder Mobility',
-                'DA Leg Raise', 'NDA Leg Raise']
+    # FMS test names for display
+    fms_tests = [
+        'Deep Squat', 'Hurdle Step', 'Inline Lunge', 
+        'TS Push Up', 'Rotary Stability',
+        'DA Shoulder Mobility', 'NDA Shoulder Mobility',
+        'DA Leg Raise', 'NDA Leg Raise'
+    ]
     
-    # Player scores
+    #Player scores
     player_scores = [
-        athlete['Deep Squat'],
-        athlete['Hurdle Step'],
-        athlete['Inline Lunge'],
-        athlete['TS Push Up'],
-        athlete['Rotary Stability'],
-        athlete['DA SM'],
-        athlete['NDA SM'],
-        athlete['DA LR'],
-        athlete['NDA LR']
+        athlete.get('deep_squat', 0) or 0,
+        athlete.get('hurdle_step', 0) or 0,
+        athlete.get('inline_lunge', 0) or 0,
+        athlete.get('ts_push_up', 0) or 0,
+        athlete.get('rotary_stability', 0) or 0,
+        athlete.get('da_sm', 0) or 0,
+        athlete.get('nda_sm', 0) or 0,
+        athlete.get('da_lr', 0) or 0,
+        athlete.get('nda_lr', 0) or 0
     ]
     
     # Calculate average scores
@@ -114,8 +114,6 @@ def display_test_results(athlete_name):
     
     # Create radar chart using plotly
     st.subheader("Functional Movement Screen (FMS) - Radar Chart")
-    
-    import plotly.graph_objects as go
     
     fig = go.Figure()
 
@@ -152,7 +150,7 @@ def display_test_results(athlete_name):
 
 def display_jump_metrics(athlete_name):
     db = get_db()
-    athlete = db.athletes.find_one({"Nome da Atleta": athlete_name})
+    athlete = db.athletes.find_one({"nome_da_atleta": athlete_name})
     
     if not athlete:
         st.error("Athlete data not found!")
@@ -160,8 +158,8 @@ def display_jump_metrics(athlete_name):
     
     # Jump metrics to display
     jumps = [
-        ('Squat Jump', 'Squat Jump', 'cm'),
-        ('CM Jump', 'CM Jump', 'cm')
+        ('squat_jump', 'Squat Jump', 'cm'),
+        ('cm_jump', 'CM Jump', 'cm')
     ]
     
     # Check if any jump metrics exist
@@ -171,25 +169,23 @@ def display_jump_metrics(athlete_name):
     
     # Calculate averages
     average_squat_jump = db.athletes.aggregate([
-        {"$group": {"_id": None, "avg": {"$avg": "$Squat Jump"}}}
+        {"$group": {"_id": None, "avg": {"$avg": "$squat_jump"}}}
     ]).next()['avg']
     
     average_cm_jump = db.athletes.aggregate([
-        {"$group": {"_id": None, "avg": {"$avg": "$CM Jump"}}}
+        {"$group": {"_id": None, "avg": {"$avg": "$cm_jump"}}}
     ]).next()['avg']
     
     # Prepare data for bar chart
     jump_names = ['Squat Jump', 'CM Jump']
     player_scores = [
-        athlete.get('Squat Jump', 0),
-        athlete.get('CM Jump', 0)
+        athlete.get('squat_jump', 0),
+        athlete.get('cm_jump', 0)
     ]
     average_scores = [average_squat_jump, average_cm_jump]
     
     # Create bar chart using plotly
     st.subheader("Jump Performance")
-    
-    import plotly.graph_objects as go
     
     fig = go.Figure()
     
@@ -226,13 +222,17 @@ def calculate_test_averages(test_name):
             {"$match": {test_name: {"$exists": True}}},
             {"$group": {"_id": None, "avg": {"$avg": f"${test_name}"}}}
         ]).next()
-        return result['avg']
-    except:
+        return round(result['avg'], 2)  # Round to 2 decimal places
+    except StopIteration:
+        # No documents match the criteria
         return None
-
+    except Exception as e:
+        st.error(f"Error calculating averages: {str(e)}")
+        return None
+    
 def display_performance_charts(athlete_name):
     db = get_db()
-    athlete = db.athletes.find_one({"Nome da Atleta": athlete_name})
+    athlete = db.athletes.find_one({"nome_da_atleta": athlete_name})
     
     if not athlete:
         st.error("Athlete data not found!")
@@ -240,16 +240,16 @@ def display_performance_charts(athlete_name):
     
     # Performance tests to display
     tests = [
-        ('V 10m/s', '10m Speed', 's'),
-        ('V 30m/s', '30m Speed', 's'),
-        ('T Test/s', 'T Test', 's'),
-        ('1x Bronco Test/s', 'Bronco Test', 's'),
-        ('Beep Test/min', 'Beep Test', 'min')
+        ('v_10m_s', '10m Speed', 's'),
+        ('v_30m_s', '30m Speed', 's'),
+        ('t_test_s', 'T Test', 's'),
+        ('1x_bronco_test_s', 'Bronco Test', 's'),
+        ('beep_test_min', 'Beep Test', 'min')
     ]
     
     # Check if any performance metrics exist
     if not any(field in athlete for field, _, _ in tests):
-        st.info("No more performance metrics available for this athlete.")
+        st.info("No performance test results available for this athlete.")
         return
     
     # Create charts for each test
@@ -283,6 +283,7 @@ def display_performance_charts(athlete_name):
             else:
                 st.metric(test_name, f"{player_score} {unit}")
 
+
 def show():
     # Initialize session state
     if 'selected_athlete' not in st.session_state:
@@ -294,8 +295,8 @@ def show():
     @st.cache_data
     def get_athlete_names():
         db = get_db()
-        athletes = db.athletes.find({}, {"Nome da Atleta": 1, "_id": 0})
-        return [a['Nome da Atleta'] for a in athletes]
+        athletes = db.athletes.find({}, {"nome_da_atleta": 1, "_id": 0})
+        return sorted([a['nome_da_atleta'] for a in athletes])
 
     # Athlete selection
     athlete_names = get_athlete_names()
@@ -312,9 +313,8 @@ def show():
 
     # Display components
     if selected_athlete:
-        st.header("Player Profile")  # Add this line
+        st.header("Player Profile")
         display_player_profile(selected_athlete)
         display_test_results(selected_athlete)
         display_jump_metrics(selected_athlete)
         display_performance_charts(selected_athlete)
-        
