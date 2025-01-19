@@ -1,18 +1,29 @@
 import pymongo
-from dotenv import load_dotenv
-import os
 from pymongo import MongoClient
+import os
+from dotenv import load_dotenv
+import streamlit as st
 
+# Load .env file for local development
 load_dotenv()
 
 def get_db():
     try:
-        # Use environment variables for credentials
-        MONGO_URI = os.getenv("MONGO_URI")  # Ensure this is set in your .env file
-        DB_NAME = os.getenv("DB_NAME", "athlete_db")  # Default to 'athlete_db' if not set
+        # Check if running in Streamlit Cloud
+        is_streamlit_cloud = os.getenv("STREAMLIT_CLOUD", "").lower() == "true"
+
+        # Use Streamlit secrets in Cloud, .env locally
+        MONGO_URI = (
+            st.secrets.get("MONGO_URI") if is_streamlit_cloud
+            else os.getenv("MONGO_URI")
+        )
+        DB_NAME = (
+            st.secrets.get("DB_NAME", "athlete_db") if is_streamlit_cloud
+            else os.getenv("DB_NAME", "athlete_db")
+        )
 
         if not MONGO_URI:
-            raise ValueError("MONGO_URI environment variable is not set!")
+            raise ValueError("MONGO_URI is not set in Streamlit secrets or .env file!")
 
         client = MongoClient(
             MONGO_URI,
