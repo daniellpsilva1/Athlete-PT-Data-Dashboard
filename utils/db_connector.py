@@ -15,4 +15,4 @@ def get_db():
         connectTimeoutMS=30000,
         socketTimeoutMS=30000
     )
-    return client.your_database_name
+    return client['athlete_db']['athletes'] 
